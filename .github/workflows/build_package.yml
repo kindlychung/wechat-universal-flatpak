@@ -2,6 +2,7 @@ name: Build Flatpak Bundle
 on:
   workflow_dispatch:
   pull_request:
+  push:
 
 jobs:
   build-bundle:
@@ -10,18 +11,23 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        name: Checkout
+
+
       - name: Install Flatpak
-        run:
-          |
-          sudo apt update
-          sudo apt upgrade -y
-          sudo apt install -y flatpak flatpak-builder
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y org.freedesktop.Platform//23.08
-          sudo flatpak install -y org.freedesktop.Sdk//23.08
-          git config --global protocol.file.allow always # https://github.com/flatpak/flatpak-builder/issues/495
+        uses: uraimo/run-on-arch-action@v2
+        with: 
+          arch: arm64
+          distro: ubuntu22.04
+          run: |
+            sudo apt update
+            sudo apt upgrade -y
+            sudo apt install -y flatpak flatpak-builder
+            sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+            sudo flatpak install -y org.freedesktop.Platform//23.08
+            sudo flatpak install -y org.freedesktop.Sdk//23.08
+            git config --global protocol.file.allow always # https://github.com/flatpak/flatpak-builder/issues/495
       - name: Build
         run:
           |
